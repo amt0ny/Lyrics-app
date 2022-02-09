@@ -21,13 +21,12 @@ function showData(data) {
         .map(
           song => `<li>
       <span><strong>${song.artist.name}</strong> - ${song.title}</span>
-      <button class="btn" data-songtitle="${song.title}">Get Lyrics</button>
+      <button class="btn" data-artist="${song.artist.name}" data-songtitle="${song.title}">Get Lyrics</button>
     </li>`
         )
         .join('')}
     </ul>
   `;
-// data-artist="${song.artist.name}"
 // Get lyrics for song
 async function getLyrics(artist, songTitle) {
   const res = await fetch(`${apiURL}/v1/${artist}/${songTitle}`);
