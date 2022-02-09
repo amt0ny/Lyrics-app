@@ -27,15 +27,48 @@ function showData(data) {
         .join('')}
     </ul>
   `;
+
+  if (data.prev || data.next) {
+    more.innerHTML = `
+      ${
+        data.prev
+          ? `<button class="btn" onclick="getMoreSongs('${data.prev}')">Prev</button>`
+          : ''
+      }
+      ${
+        data.next
+          ? `<button class="btn" onclick="getMoreSongs('${data.next}')">Next</button>`
+          : ''
+      }
+    `;
+  } else {
+    more.innerHTML = '';
+  }
+}
+
+// Get prev and next songs
+async function getMoreSongs(url) {
+  const res = await fetch(`https://cors-anywhere.herokuapp.com/${url}`);
+  const data = await res.json();
+
+  showData(data);
+}
+
 // Get lyrics for song
 async function getLyrics(artist, songTitle) {
   const res = await fetch(`${apiURL}/v1/${artist}/${songTitle}`);
   const data = await res.json();
 
-  const lyrics = data.lyrics.replace(/(\r\n|\r|\n)/g, '<br>');
+   if (data.error) {
+        result.innerHTML = data.error;
+   } else {
+        const lyrics = data.lyrics.replace(/(\r\n|\r|\n)/g, '<br>');
 
-  result.innerHTML = `<h2><strong>${artist}</strong> - ${songTitle}</h2>
-  <span>${lyrics}</span>`;
+        result.innerHTML = `
+            <h2><strong>${artist}</strong> - ${songTitle}</h2>
+            <span>${lyrics}</span>
+        `;
+  }
 
   more.innerHTML = '';
 }
@@ -64,4 +97,3 @@ result.addEventListener('click', e => {
     getLyrics(artist, songTitle);
   }
 });
-
