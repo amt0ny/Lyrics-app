@@ -1,73 +1,74 @@
-const form = document.getElementById('form');
-const search = document.getElementById('search');
-const result = document.getElementById('result');
-const more = document.getElementById('more');
+//defining the variables
+const form = document.getElementById("searchMe");//target the form tag in the html file
+const search = document.getElementById("lyricSearch");//target th input field
+const output = document.getElementById("search-result");
 
-const apiURL = 'https://api.lyrics.ovh';
+const api = "https://api.lyrics.ovh";
 
-// Search by song or artist
-async function searchSongs(term) {
-  const res = await fetch(`${apiURL}/suggest/${term}`);
-  const data = await res.json();
-
-  showData(data);
-}
-
-// Show song and artist in DOM
+//structuring how the result will be displayed using the suggestion mode the API supports
 function showData(data) {
-  result.innerHTML = `
-    <ul class="songs">
+    output.innerHTML = `
+    <ul class="lyrics">
       ${data.data
-        .map(
-          song => `<li>
-      <span><strong>${song.artist.name}</strong> - ${song.title}</span>
-      <button class="btn" data-artist="${song.artist.name}" data-songtitle="${song.title}">Get Lyrics</button>
-    </li>`
+        .map(song=> `<li>
+                    <`div`>
+                        <strong>${song.artist.name}</strong> -${song.title} 
+                    </`div`>
+                    <span class="btn" data-artist="${song.artist.name}" data-songtitle="${song.title}">Get Lyrics</span>
+                </li>`
         )
         .join('')}
     </ul>
   `;
-
-// Get lyrics for song
-async function getLyrics(artist, songTitle) {
-  const res = await fetch(`${apiURL}/v1/${artist}/${songTitle}`);
-  const data = await res.json();
-
-   if (data.error) {
-        result.innerHTML = data.error;
-   } else {
-        const lyrics = data.lyrics.replace(/(\r\n|\r|\n)/g, '<br>');
-
-        result.innerHTML = `
-            <h2><strong>${artist}</strong> - ${songTitle}</h2>
-            <span>${lyrics}</span>
-        `;
-  }
-
-  more.innerHTML = '';
 }
 
-// Event listeners
-form.addEventListener('submit', e => {
-  e.preventDefault();
+//declaring async function to fetch data from api
+async function startSearch(searchValue) {
+    const searchResult = await fetch(`${api}/suggest/${searchValue}`);
+    const data = await searchResult.json();
 
-  const searchTerm = search.value.trim();
+    showData(data);
+}
 
-  if (!searchTerm) {
-    alert('Please type in a search term');
-  } else {
-    searchSongs(searchTerm);
-  }
-});
+//calling the function that gets and displays the lyrics
+async function getLyrics(artist, songTitle) {
+    const response = await fetch(`${api}/v1/${artist}/${songTitle}`);
+    const data = await response.json();
+  
+    const lyrics = data.lyrics;
+    if (lyrics === undefined){
+        alert('lyrics doesnt exist in this api');
+        console.log('lyrics does not exist in this api');
+    }
+  
+    output.innerHTML = `<h2><strong>${artist}</strong> - ${songTitle}</h2>
+    <p id="lyrics-display">${lyrics}</p>`;
+  
+}
 
-// Get lyrics button click
-result.addEventListener('click', e => {
-  const clickedEl = e.target;
+//listening if the clicked event is on the span tag, so lyrics can be called and displayed
+output.addEventListener('click', e=>{
+    const clickedElement = e.target;
 
-  if (clickedEl.tagName === 'BUTTON') {
-    const artist = clickedEl.getAttribute('data-artist');
-    const songTitle = clickedEl.getAttribute('data-songtitle');
+    //checking clicked element is button or not
+    if (clickedElement.tagName === 'SPAN'){
+        const artist = clickedElement.getAttribute('data-artist');
+        const songTitle = clickedElement.getAttribute('data-songtitle');
+        
+        getLyrics(artist, songTitle)
+    }
+})
 
-    getLyrics(artist, songTitle);
-  }
-});
+
+//listening for a submit event
+
+form.addEventListener("submit", e => {
+    e.preventDefault();
+    searchValue = search.value.trim();
+
+    if (!searchValue) {
+        alert("Nothing to search");
+    } else {
+        startSearch(searchValue);
+    }
+})
